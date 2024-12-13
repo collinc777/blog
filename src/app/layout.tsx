@@ -49,9 +49,6 @@ export const metadata: Metadata = {
     creator: '@collincaram',
     images: [HOME_OG_IMAGE_URL],
   },
-  verification: {
-    google: 'your-google-site-verification', // You'll need to add this
-  },
   alternates: {
     canonical: 'https://collincaram.com',
     types: {
