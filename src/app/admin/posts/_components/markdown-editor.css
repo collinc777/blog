@@ -1,0 +1,83 @@
+.w-md-editor {
+  --md-editor-bg-color: transparent !important;
+  --md-editor-border-color: transparent !important;
+}
+
+.w-md-editor-toolbar {
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  background-color: transparent !important;
+}
+
+.w-md-editor-toolbar ul {
+  background-color: transparent !important;
+}
+
+.w-md-editor-toolbar li.active button {
+  background-color: hsl(var(--secondary)) !important;
+}
+
+.w-md-editor-toolbar button {
+  color: hsl(var(--foreground)) !important;
+}
+
+.w-md-editor-toolbar button:hover {
+  background-color: hsl(var(--secondary)) !important;
+}
+
+.w-md-editor-text {
+  background-color: transparent !important;
+}
+
+.w-md-editor-text-pre, 
+.w-md-editor-text-input,
+.w-md-editor-text-pre > code {
+  color: hsl(var(--foreground)) !important;
+  background-color: transparent !important;
+  font-size: 0.875rem !important;
+}
+
+.wmde-markdown {
+  background-color: transparent !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.wmde-markdown h1,
+.wmde-markdown h2,
+.wmde-markdown h3,
+.wmde-markdown h4,
+.wmde-markdown h5,
+.wmde-markdown h6 {
+  color: hsl(var(--foreground)) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+}
+
+.wmde-markdown code {
+  color: hsl(var(--primary)) !important;
+  background-color: hsl(var(--secondary)) !important;
+}
+
+.wmde-markdown pre {
+  background-color: hsl(var(--secondary)) !important;
+}
+
+.wmde-markdown blockquote {
+  color: hsl(var(--muted-foreground)) !important;
+  border-left-color: hsl(var(--border)) !important;
+}
+
+.wmde-markdown hr {
+  background-color: hsl(var(--border)) !important;
+}
+
+.wmde-markdown a {
+  color: hsl(var(--primary)) !important;
+}
+
+.wmde-markdown table {
+  border-color: hsl(var(--border)) !important;
+}
+
+.wmde-markdown th,
+.wmde-markdown td {
+  border-color: hsl(var(--border)) !important;
+} 

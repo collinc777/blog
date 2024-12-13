@@ -3,7 +3,7 @@ import { BLOG_NAME, HOME_OG_IMAGE_URL } from "@/lib/constants";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import cn from "classnames";
-import { Toaster } from 'sonner';
+import { Toaster } from "@/components/ui/toaster";
 
 import "./globals.css";
 

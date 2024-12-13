@@ -34,7 +34,7 @@ export default function AdminPostsPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto py-8">
-        <div className="text-center">Loading posts...</div>
+        <div className="text-center text-muted-foreground">Loading posts...</div>
       </div>
     );
   }
@@ -58,10 +58,10 @@ export default function AdminPostsPage() {
           </div>
         ) : (
           posts.map((post) => (
-            <div key={post.id} className="border rounded-lg p-4 bg-white">
+            <div key={post.id} className="border rounded-lg p-4 bg-card">
               <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-xl font-semibold">{post.title}</h2>
+                  <h2 className="text-xl font-semibold text-card-foreground">{post.title}</h2>
                   <div className="flex space-x-2 text-sm text-muted-foreground mt-1">
                     <time dateTime={post.created_at}>
                       Created: {new Date(post.created_at).toLocaleDateString()}
@@ -79,7 +79,12 @@ export default function AdminPostsPage() {
                       Edit
                     </Link>
                   </Button>
-                  <div className="bg-secondary text-secondary-foreground px-2 py-1 rounded text-sm">
+                  <div className={cn(
+                    "px-2 py-1 rounded text-sm",
+                    post.published_at 
+                      ? "bg-primary/10 text-primary" 
+                      : "bg-muted text-muted-foreground"
+                  )}>
                     {post.published_at ? 'Published' : 'Draft'}
                   </div>
                 </div>
