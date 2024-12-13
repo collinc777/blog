@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllPosts, getPostBySlug } from "@/lib/api";
-import { CMS_NAME } from "@/lib/constants";
+import { BLOG_NAME } from "@/lib/constants";
 import markdownToHtml from "@/lib/markdownToHtml";
 import Alert from "@/app/_components/alert";
 import Container from "@/app/_components/container";
@@ -52,15 +52,36 @@ export async function generateMetadata(props: Params): Promise<Metadata> {
     return notFound();
   }
 
-  const title = `${post.title} | ${CMS_NAME}`;
+  const title = `${post.title} | ${BLOG_NAME}`;
+  const url = `https://collincaram.com/posts/${post.slug}`;
 
   return {
     title,
     description: post.excerpt,
+    authors: [{ name: post.author.name }],
     openGraph: {
       title,
       description: post.excerpt,
+      type: 'article',
+      url,
+      images: [{
+        url: post.ogImage.url,
+        width: 1200,
+        height: 630,
+        alt: post.title,
+      }],
+      publishedTime: post.date,
+      authors: [post.author.name],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: post.excerpt,
       images: [post.ogImage.url],
+      creator: '@collincaram',
+    },
+    alternates: {
+      canonical: url,
     },
   };
 }

@@ -1,5 +1,5 @@
 import Footer from "@/app/_components/footer";
-import { CMS_NAME, HOME_OG_IMAGE_URL } from "@/lib/constants";
+import { BLOG_NAME, HOME_OG_IMAGE_URL } from "@/lib/constants";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import cn from "classnames";
@@ -9,10 +9,54 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: CMS_NAME,
+  title: BLOG_NAME,
   description: "Thoughts on software engineering, AI, and building great products.",
+  applicationName: BLOG_NAME,
+  authors: [{ name: "Collin Caram", url: "https://github.com/collinc777" }],
+  generator: "Next.js",
+  keywords: ["Software Engineering", "AI", "Product Development", "Engineering Blog", "Tech Blog"],
+  creator: "Collin Caram",
+  publisher: "Collin Caram",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://collincaram.com',
+    title: BLOG_NAME,
+    description: "Thoughts on software engineering, AI, and building great products.",
+    siteName: BLOG_NAME,
+    images: [{
+      url: HOME_OG_IMAGE_URL,
+      width: 1200,
+      height: 630,
+      alt: "Collin Caram's Blog",
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: BLOG_NAME,
+    description: "Thoughts on software engineering, AI, and building great products.",
+    creator: '@collincaram',
     images: [HOME_OG_IMAGE_URL],
+  },
+  verification: {
+    google: 'your-google-site-verification', // You'll need to add this
+  },
+  alternates: {
+    canonical: 'https://collincaram.com',
+    types: {
+      'application/rss+xml': 'https://collincaram.com/feed.xml',
+    },
   },
 };
 
