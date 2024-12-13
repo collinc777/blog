@@ -52,12 +52,14 @@ export async function generateMetadata(props: Params): Promise<Metadata> {
     return notFound();
   }
 
-  const title = `${post.title} | Next.js Blog Example with ${CMS_NAME}`;
+  const title = `${post.title} | ${CMS_NAME}`;
 
   return {
     title,
+    description: post.excerpt,
     openGraph: {
       title,
+      description: post.excerpt,
       images: [post.ogImage.url],
     },
   };
