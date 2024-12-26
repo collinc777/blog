@@ -14,6 +14,167 @@ import { useRightPane } from './split-layout-context';
 import { useFormStatus } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
 import { briefEvaluation } from '../schemas/brief-evaluation';
+import { Badge } from "@/components/ui/badge";
+import { z } from 'zod';
+
+type Rating = "pass" | "fail" | "needs_more_info";
+type Recommendation = "build" | "buy" | "hybrid" | "needs_more_info";
+
+interface CriterionData {
+  rating: Rating;
+  reasoning: string;
+  questions?: string[];
+  improvements?: string[];
+}
+
+interface CriterionProps extends CriterionData {
+  title: string;
+}
+
+function isCompleteCriterion(criterion: any): criterion is CriterionData {
+  return criterion && 
+    typeof criterion.rating === 'string' && 
+    typeof criterion.reasoning === 'string' &&
+    (!criterion.questions || Array.isArray(criterion.questions)) &&
+    (!criterion.improvements || Array.isArray(criterion.improvements));
+}
+
+function isCompleteRecommendation(recommendation: any): recommendation is {
+  recommendation: Recommendation;
+  reasoning: string;
+  nextSteps: string[];
+} {
+  return recommendation &&
+    typeof recommendation.recommendation === 'string' &&
+    typeof recommendation.reasoning === 'string' &&
+    Array.isArray(recommendation.nextSteps);
+}
+
+function CriterionCard({ title, rating, reasoning, questions, improvements }: CriterionProps) {
+  const ratingColors: Record<Rating, string> = {
+    pass: "bg-green-500",
+    fail: "bg-red-500",
+    needs_more_info: "bg-yellow-500"
+  };
+
+  return (
+    <Card className="p-4 space-y-3">
+      <div className="flex justify-between items-start">
+        <h4 className="font-semibold text-lg">{title}</h4>
+        <Badge className={ratingColors[rating]}>
+          {rating.replace('_', ' ').toUpperCase()}
+        </Badge>
+      </div>
+      <p className="text-sm text-gray-600">{reasoning}</p>
+      {questions && questions.length > 0 && (
+        <div>
+          <h5 className="font-medium text-sm">Questions to Consider:</h5>
+          <ul className="list-disc list-inside text-sm text-gray-600">
+            {questions.map((q, i) => <li key={i}>{q}</li>)}
+          </ul>
+        </div>
+      )}
+      {improvements && improvements.length > 0 && (
+        <div>
+          <h5 className="font-medium text-sm">Suggested Improvements:</h5>
+          <ul className="list-disc list-inside text-sm text-gray-600">
+            {improvements.map((imp, i) => <li key={i}>{imp}</li>)}
+          </ul>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function FinalRecommendation({ 
+  recommendation, 
+  reasoning, 
+  nextSteps 
+}: { 
+  recommendation: Recommendation; 
+  reasoning: string; 
+  nextSteps: string[]; 
+}) {
+  const recommendationColors: Record<Recommendation, string> = {
+    build: "bg-blue-500",
+    buy: "bg-purple-500",
+    hybrid: "bg-indigo-500",
+    needs_more_info: "bg-yellow-500"
+  };
+
+  return (
+    <Card className="p-4 space-y-3 border-2 border-primary">
+      <div className="flex justify-between items-start">
+        <h3 className="font-bold text-xl">Final Recommendation</h3>
+        <Badge className={recommendationColors[recommendation]}>
+          {recommendation.replace('_', ' ').toUpperCase()}
+        </Badge>
+      </div>
+      <p className="text-gray-600">{reasoning}</p>
+      <div>
+        <h4 className="font-semibold">Next Steps:</h4>
+        <ul className="list-disc list-inside text-sm text-gray-600">
+          {nextSteps.map((step, i) => <li key={i}>{step}</li>)}
+        </ul>
+      </div>
+    </Card>
+  );
+}
+
+function EvaluationResults({ evaluation }: { evaluation: any }) {
+  return (
+    <div className="space-y-6 mt-8">
+      {evaluation.stateComplexityAnalysis && isCompleteCriterion(evaluation.stateComplexityAnalysis) && (
+        <CriterionCard
+          title="State Complexity Analysis"
+          rating={evaluation.stateComplexityAnalysis.rating}
+          reasoning={evaluation.stateComplexityAnalysis.reasoning}
+          questions={evaluation.stateComplexityAnalysis.questions}
+          improvements={evaluation.stateComplexityAnalysis.improvements}
+        />
+      )}
+      {evaluation.requirementsClarityAnalysis && isCompleteCriterion(evaluation.requirementsClarityAnalysis) && (
+        <CriterionCard
+          title="Requirements Clarity Analysis"
+          rating={evaluation.requirementsClarityAnalysis.rating}
+          reasoning={evaluation.requirementsClarityAnalysis.reasoning}
+          questions={evaluation.requirementsClarityAnalysis.questions}
+          improvements={evaluation.requirementsClarityAnalysis.improvements}
+        />
+      )}
+      {evaluation.categoryMaturityAnalysis && isCompleteCriterion(evaluation.categoryMaturityAnalysis) && (
+        <CriterionCard
+          title="Category Maturity Analysis"
+          rating={evaluation.categoryMaturityAnalysis.rating}
+          reasoning={evaluation.categoryMaturityAnalysis.reasoning}
+          questions={evaluation.categoryMaturityAnalysis.questions}
+          improvements={evaluation.categoryMaturityAnalysis.improvements}
+        />
+      )}
+      {evaluation.resourceConsiderationAnalysis && isCompleteCriterion(evaluation.resourceConsiderationAnalysis) && (
+        <CriterionCard
+          title="Resource Consideration Analysis"
+          rating={evaluation.resourceConsiderationAnalysis.rating}
+          reasoning={evaluation.resourceConsiderationAnalysis.reasoning}
+          questions={evaluation.resourceConsiderationAnalysis.questions}
+          improvements={evaluation.resourceConsiderationAnalysis.improvements}
+        />
+      )}
+      {evaluation.llmImpactAnalysis && isCompleteCriterion(evaluation.llmImpactAnalysis) && (
+        <CriterionCard
+          title="LLM Impact Analysis"
+          rating={evaluation.llmImpactAnalysis.rating}
+          reasoning={evaluation.llmImpactAnalysis.reasoning}
+          questions={evaluation.llmImpactAnalysis.questions}
+          improvements={evaluation.llmImpactAnalysis.improvements}
+        />
+      )}
+      {evaluation.finalRecommendation && isCompleteRecommendation(evaluation.finalRecommendation) && (
+        <FinalRecommendation {...evaluation.finalRecommendation} />
+      )}
+    </div>
+  );
+}
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -76,6 +237,7 @@ export function BuildVsBuyDocGenerator() {
     async function handleSubmit(formData: FormData) {
         const clonedFormData = new FormData(formRef.current!);
         const formDataObj = Object.fromEntries(clonedFormData);
+        console.log({formDataObj});
         setFormData(formDataObj);
         await complete(JSON.stringify(formDataObj));
     }
@@ -222,8 +384,7 @@ export function BuildVsBuyDocGenerator() {
 
                 <SubmitButton />
             </form>
-            {object && <div>{JSON.stringify(object)}</div>}
-            
+            {object && <EvaluationResults evaluation={object} />}
         </Card>
     );
 } 
