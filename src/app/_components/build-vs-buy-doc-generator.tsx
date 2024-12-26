@@ -121,7 +121,7 @@ function FinalRecommendation({
   );
 }
 
-function EvaluationResults({ evaluation }: { evaluation: any }) {
+function EvaluationResults({ evaluation }: { evaluation: z.infer<typeof briefEvaluation> }) {
   return (
     <div className="space-y-6 mt-8">
       {evaluation.stateComplexityAnalysis && isCompleteCriterion(evaluation.stateComplexityAnalysis) && (
@@ -384,7 +384,7 @@ export function BuildVsBuyDocGenerator() {
 
                 <SubmitButton />
             </form>
-            {object && <EvaluationResults evaluation={object} />}
+            {object && <EvaluationResults evaluation={object as z.infer<typeof briefEvaluation>} />}
         </Card>
     );
 } 
