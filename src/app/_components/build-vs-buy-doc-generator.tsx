@@ -2,7 +2,7 @@
 import { useCompletion, experimental_useObject as useObject } from 'ai/react';
 
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,25 +11,35 @@ import { Card } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { MemoizedMarkdown } from './memoized-markdown';
+import { useRightPane } from './split-layout-context';
+import { useFormStatus } from 'react-dom';
 
 const initialState = {};
 
 function SubmitButton() {
+    const { pending } = useFormStatus();
 
     return (
         <Button
             type="submit"
             className="w-full"
+            disabled={pending}
         >
-            Generate Decision Framework Analysis'
+            {pending ? 'Generating...' : 'Generate Decision Framework Analysis'}
         </Button>
     );
 }
 
 export function BuildVsBuyDocGenerator() {
-    const { completion, complete, isLoading } = useCompletion({
+    const { setRightPaneContent } = useRightPane();
+    const { completion, complete, isLoading  } = useCompletion({
         api: '/api/build-vs-buy/generate-brief',
     });
+    useEffect(() => {
+        if (completion) {
+            setRightPaneContent(<MemoizedMarkdown content={completion} id="build-vs-buy-doc-generator" />);
+        }
+    }, [completion]);
 
     async function handleSubmit(state: any, formData: FormData) {
         const result = await complete(JSON.stringify(Object.fromEntries(formData)));
@@ -145,12 +155,6 @@ export function BuildVsBuyDocGenerator() {
                         />
                     </div>
                 </div>
-
-                {completion && (
-                    <div className="text-sm">
-                        <MemoizedMarkdown content={completion} id="build-vs-buy-doc-generator" />
-                    </div>
-                )}
                 <SubmitButton />
             </form>
         </Card>
