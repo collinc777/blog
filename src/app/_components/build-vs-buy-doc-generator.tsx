@@ -121,7 +121,92 @@ function FinalRecommendation({
   );
 }
 
+function QuestionResponses({ 
+  questions, 
+  onSubmit 
+}: { 
+  questions: string[]; 
+  onSubmit: (answers: Record<string, string>) => void;
+}) {
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(answers);
+  };
+
+  return (
+    <Card className="p-4 space-y-4">
+      <h4 className="font-semibold">Additional Questions</h4>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {questions.map((question, index) => (
+          <div key={index} className="space-y-2">
+            <Label htmlFor={`question-${index}`}>{question}</Label>
+            <Textarea
+              id={`question-${index}`}
+              value={answers[question] || ''}
+              onChange={(e) => setAnswers(prev => ({
+                ...prev,
+                [question]: e.target.value
+              }))}
+              required
+              className="h-24"
+            />
+          </div>
+        ))}
+        <Button type="submit" className="w-full">Submit Answers</Button>
+      </form>
+    </Card>
+  );
+}
+
 function EvaluationResults({ evaluation }: { evaluation: z.infer<typeof briefEvaluation> }) {
+  const { object, submit } = useObject({
+    api: '/api/build-vs-buy/evaluate-brief',
+    schema: briefEvaluation,
+  });
+  const { complete } = useCompletion({
+    api: '/api/build-vs-buy/generate-brief',
+    onFinish: (prompt: string, completion: string) => {
+      submit({
+        brief: completion,
+        formData: lastFormDataRef.current
+      });
+    },
+  });
+  const lastFormDataRef = useRef<any>(null);
+
+  // Helper type guard
+  const hasCriterionQuestions = (value: unknown): value is { questions?: string[] } => {
+    return value !== null && 
+           typeof value === 'object' && 
+           'questions' in value && 
+           (value as any).questions !== undefined;
+  };
+
+  // Collect all questions from the evaluation criteria (excluding finalRecommendation)
+  const allQuestions = [
+    evaluation.stateComplexityAnalysis,
+    evaluation.requirementsClarityAnalysis,
+    evaluation.categoryMaturityAnalysis,
+    evaluation.resourceConsiderationAnalysis,
+    evaluation.llmImpactAnalysis
+  ]
+    .filter(hasCriterionQuestions)
+    .flatMap(criterion => criterion.questions || []);
+
+  const handleAnswerSubmit = async (answers: Record<string, string>) => {
+    // Combine the original form data with the answers
+    const updatedFormData = {
+      ...JSON.parse(lastFormDataRef.current),
+      questionResponses: answers
+    };
+    lastFormDataRef.current = JSON.stringify(updatedFormData);
+    
+    // Trigger a new brief generation with the updated data
+    await complete(JSON.stringify(updatedFormData));
+  };
+
   return (
     <div className="space-y-6 mt-8">
       {evaluation.stateComplexityAnalysis && isCompleteCriterion(evaluation.stateComplexityAnalysis) && (
@@ -167,6 +252,12 @@ function EvaluationResults({ evaluation }: { evaluation: z.infer<typeof briefEva
           reasoning={evaluation.llmImpactAnalysis.reasoning}
           questions={evaluation.llmImpactAnalysis.questions}
           improvements={evaluation.llmImpactAnalysis.improvements}
+        />
+      )}
+      {allQuestions.length > 0 && (
+        <QuestionResponses 
+          questions={allQuestions} 
+          onSubmit={handleAnswerSubmit} 
         />
       )}
       {evaluation.finalRecommendation && isCompleteRecommendation(evaluation.finalRecommendation) && (
