@@ -8,6 +8,7 @@ author:
   picture: "/assets/blog/authors/collin.jpeg"
 ogImage:
   url: "/assets/blog/build-vs-buy/cover.jpg"
+features: ["build-vs-buy-doc-generator"]
 ---
 
 One of the most challenging decisions tech leaders face is whether to build or buy software solutions. But this calculation has changed dramatically in the past year as LLMs have transformed how we build software.

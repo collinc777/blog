@@ -1,16 +1,21 @@
 import markdownStyles from "./markdown-styles.module.css";
+import { BuildVsBuyDocGenerator } from "./build-vs-buy-doc-generator";
 
 type Props = {
   content: string;
+  features?: string[];
 };
 
-export function PostBody({ content }: Props) {
+export function PostBody({ content, features }: Props) {
   return (
     <div className="max-w-2xl mx-auto">
       <div
         className={markdownStyles["markdown"]}
         dangerouslySetInnerHTML={{ __html: content }}
       />
+      {features?.includes('build-vs-buy-doc-generator') && (
+        <BuildVsBuyDocGenerator />
+      )}
     </div>
   );
 }
