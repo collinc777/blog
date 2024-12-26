@@ -1,6 +1,7 @@
 'use client';
 import { useCompletion } from 'ai/react';
-import { useEffect, useRef } from 'react';
+import { experimental_useObject as useObject } from 'ai/react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import { MemoizedMarkdown } from './memoized-markdown';
 import { useRightPane } from './split-layout-context';
 import { useFormStatus } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
+import { briefEvaluation } from '../schemas/brief-evaluation';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -41,9 +43,27 @@ const syntheticData = {
 
 export function BuildVsBuyDocGenerator() {
     const { setRightPaneContent } = useRightPane();
+    const [formData, setFormData] = useState<FormData | null>(null);
+    const { object, submit } = useObject({
+        api: '/api/build-vs-buy/evaluate-brief',
+        schema: briefEvaluation,
+    });
     const { completion, complete, isLoading } = useCompletion({
         api: '/api/build-vs-buy/generate-brief',
+        onFinish(prompt, completion) {
+            console.log('onFinish', {prompt, completion});
+            if (formData) {
+                const formDataObj = Object.fromEntries(formData);
+                submit({
+                    brief: completion,
+                    formData: JSON.stringify(formDataObj)
+                });
+            } else {
+                console.error('Form data is null');
+            }
+        },
     });
+
     const formRef = useRef<HTMLFormElement>(null);
     const searchParams = useSearchParams();
     const isSuperuser = searchParams.get('user_type') === 'superuser';
@@ -55,6 +75,8 @@ export function BuildVsBuyDocGenerator() {
     }, [completion, setRightPaneContent]);
 
     async function handleSubmit(formData: FormData) {
+        const clonedFormData = new FormData(formRef.current!);
+        setFormData(clonedFormData);
         await complete(JSON.stringify(Object.fromEntries(formData)));
     }
 
@@ -200,6 +222,8 @@ export function BuildVsBuyDocGenerator() {
 
                 <SubmitButton />
             </form>
+            {object && <div>{JSON.stringify(object)}</div>}
+            
         </Card>
     );
 } 
