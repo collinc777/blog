@@ -1,8 +1,6 @@
 'use client';
-import { useCompletion, experimental_useObject as useObject } from 'ai/react';
-
-
-import { useActionState, useEffect } from 'react';
+import { useCompletion } from 'ai/react';
+import { useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,8 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { MemoizedMarkdown } from './memoized-markdown';
 import { useRightPane } from './split-layout-context';
 import { useFormStatus } from 'react-dom';
-
-const initialState = {};
+import { useSearchParams } from 'next/navigation';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -30,28 +27,73 @@ function SubmitButton() {
     );
 }
 
+const syntheticData = {
+    projectName: "AI-Powered Document Search",
+    stateComplexity: "high",
+    stateDescription: "Complex distributed system requiring real-time updates, caching layers, and multi-region deployment.",
+    requirementsClarity: "evolving",
+    mvpDescription: "Basic document search with AI summaries, supporting PDF and Word documents initially.",
+    evolutionPath: "Planning to add real-time collaboration, more file types, and advanced AI features.",
+    categoryMaturity: "emerging",
+    existingSolutions: "Evaluated Elastic, Algolia, and custom solutions. Each has tradeoffs in AI capabilities vs. search performance.",
+    teamCapabilities: "Strong backend team with ML experience, previous search implementation experience."
+};
+
 export function BuildVsBuyDocGenerator() {
     const { setRightPaneContent } = useRightPane();
-    const { completion, complete, isLoading  } = useCompletion({
+    const { completion, complete, isLoading } = useCompletion({
         api: '/api/build-vs-buy/generate-brief',
     });
+    const formRef = useRef<HTMLFormElement>(null);
+    const searchParams = useSearchParams();
+    const isSuperuser = searchParams.get('user_type') === 'superuser';
+
     useEffect(() => {
         if (completion) {
             setRightPaneContent(<MemoizedMarkdown content={completion} id="build-vs-buy-doc-generator" />);
         }
-    }, [completion]);
+    }, [completion, setRightPaneContent]);
 
-    async function handleSubmit(state: any, formData: FormData) {
-        const result = await complete(JSON.stringify(Object.fromEntries(formData)));
-        return state;
+    async function handleSubmit(formData: FormData) {
+        await complete(JSON.stringify(Object.fromEntries(formData)));
     }
 
-    const [state, formAction] = useActionState(handleSubmit, {});
+    const fillSyntheticData = () => {
+        if (!formRef.current) return;
+        
+        // Fill text inputs and textareas
+        Object.entries(syntheticData).forEach(([key, value]) => {
+            const element = formRef.current?.elements.namedItem(key) as HTMLInputElement | HTMLTextAreaElement;
+            if (element) {
+                element.value = value;
+            }
+        });
+
+        // Fill radio buttons
+        ['stateComplexity', 'requirementsClarity', 'categoryMaturity'].forEach(name => {
+            const radio = formRef.current?.querySelector(`input[name="${name}"][value="${syntheticData[name as keyof typeof syntheticData]}"]`) as HTMLInputElement;
+            if (radio) {
+                radio.checked = true;
+            }
+        });
+    };
 
     return (
         <Card className="p-6 my-8">
-            <h3 className="text-xl font-bold mb-4">Build vs Buy Decision Framework</h3>
-            <form action={formAction} className="space-y-6">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Build vs Buy Decision Framework</h3>
+                {isSuperuser && (
+                    <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={fillSyntheticData}
+                        className="text-sm"
+                    >
+                        Quick Fill
+                    </Button>
+                )}
+            </div>
+            <form ref={formRef} action={handleSubmit} className="space-y-6">
                 <div>
                     <Label htmlFor="projectName">Project Name</Label>
                     <Input
@@ -155,6 +197,7 @@ export function BuildVsBuyDocGenerator() {
                         />
                     </div>
                 </div>
+
                 <SubmitButton />
             </form>
         </Card>
