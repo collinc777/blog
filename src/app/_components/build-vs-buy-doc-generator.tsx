@@ -1,7 +1,7 @@
 'use client';
 import { useCompletion } from 'ai/react';
 import { experimental_useObject as useObject } from 'ai/react';
-import { useEffect, useRef, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,7 +43,7 @@ const syntheticData = {
 
 export function BuildVsBuyDocGenerator() {
     const { setRightPaneContent } = useRightPane();
-    const [formData, setFormData] = useState<FormData | null>(null);
+    const [formData, setFormData] = useState<Record<string, FormDataEntryValue> | null>(null);
     const { object, submit } = useObject({
         api: '/api/build-vs-buy/evaluate-brief',
         schema: briefEvaluation,
@@ -53,10 +53,9 @@ export function BuildVsBuyDocGenerator() {
         onFinish(prompt, completion) {
             console.log('onFinish', {prompt, completion});
             if (formData) {
-                const formDataObj = Object.fromEntries(formData);
                 submit({
                     brief: completion,
-                    formData: JSON.stringify(formDataObj)
+                    formData: JSON.stringify(formData)
                 });
             } else {
                 console.error('Form data is null');
@@ -76,8 +75,9 @@ export function BuildVsBuyDocGenerator() {
 
     async function handleSubmit(formData: FormData) {
         const clonedFormData = new FormData(formRef.current!);
-        setFormData(clonedFormData);
-        await complete(JSON.stringify(Object.fromEntries(formData)));
+        const formDataObj = Object.fromEntries(clonedFormData);
+        setFormData(formDataObj);
+        await complete(JSON.stringify(formDataObj));
     }
 
     const fillSyntheticData = () => {
