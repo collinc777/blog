@@ -1,7 +1,7 @@
 'use client';
 import { useCompletion } from 'ai/react';
 import { experimental_useObject as useObject } from 'ai/react';
-import { useActionState, useEffect, useRef, useState } from 'react';
+import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -178,7 +178,6 @@ function EvaluationResults({ evaluation }: { evaluation: z.infer<typeof briefEva
 
 function SubmitButton() {
     const { pending } = useFormStatus();
-
     return (
         <Button
             type="submit"
@@ -204,24 +203,35 @@ const syntheticData = {
 
 export function BuildVsBuyDocGenerator() {
     const { setRightPaneContent } = useRightPane();
-    const [formData, setFormData] = useState<Record<string, FormDataEntryValue> | null>(null);
     const { object, submit } = useObject({
         api: '/api/build-vs-buy/evaluate-brief',
         schema: briefEvaluation,
     });
+    const lastFormDataRef = useRef<any>(null);
+
+    async function handleSubmit(_prevState: any, formData: FormData) {
+        const formDataObj = Object.fromEntries(formData);
+        lastFormDataRef.current = formDataObj;
+        await complete(JSON.stringify(formDataObj));
+        return formDataObj;
+    }
+    const [state, action] = useActionState(handleSubmit, null);
+
+    const onFinish = useCallback((prompt: string, completion: string) => {
+        console.log('onFinish', {prompt, completion});
+        const formData = lastFormDataRef.current;
+        if (formData) {
+            submit({
+                brief: completion,
+                formData: JSON.stringify(formData)
+            });
+        } else {
+            console.error('Form data is null');
+        }
+    }, [submit]);
     const { completion, complete, isLoading } = useCompletion({
         api: '/api/build-vs-buy/generate-brief',
-        onFinish(prompt, completion) {
-            console.log('onFinish', {prompt, completion});
-            if (formData) {
-                submit({
-                    brief: completion,
-                    formData: JSON.stringify(formData)
-                });
-            } else {
-                console.error('Form data is null');
-            }
-        },
+        onFinish,
     });
 
     const formRef = useRef<HTMLFormElement>(null);
@@ -234,14 +244,7 @@ export function BuildVsBuyDocGenerator() {
         }
     }, [completion, setRightPaneContent]);
 
-    async function handleSubmit(formData: FormData) {
-        const clonedFormData = new FormData(formRef.current!);
-        const formDataObj = Object.fromEntries(clonedFormData);
-        console.log({formDataObj});
-        setFormData(formDataObj);
-        await complete(JSON.stringify(formDataObj));
-    }
-
+   
     const fillSyntheticData = () => {
         if (!formRef.current) return;
         
@@ -277,7 +280,7 @@ export function BuildVsBuyDocGenerator() {
                     </Button>
                 )}
             </div>
-            <form ref={formRef} action={handleSubmit} className="space-y-6">
+            <form ref={formRef} action={action} className="space-y-6">
                 <div>
                     <Label htmlFor="projectName">Project Name</Label>
                     <Input
