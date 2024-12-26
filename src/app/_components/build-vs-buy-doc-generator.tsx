@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
+import { MemoizedMarkdown } from './memoized-markdown';
 
 const initialState = {};
 
@@ -147,7 +148,7 @@ export function BuildVsBuyDocGenerator() {
 
                 {completion && (
                     <div className="text-sm">
-                        <div>{completion}</div>
+                        <MemoizedMarkdown content={completion} id="build-vs-buy-doc-generator" />
                     </div>
                 )}
                 <SubmitButton />
