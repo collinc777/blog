@@ -160,22 +160,10 @@ function QuestionResponses({
   );
 }
 
-function EvaluationResults({ evaluation }: { evaluation: z.infer<typeof briefEvaluation> }) {
-  const { object, submit } = useObject({
-    api: '/api/build-vs-buy/evaluate-brief',
-    schema: briefEvaluation,
-  });
-  const { complete } = useCompletion({
-    api: '/api/build-vs-buy/generate-brief',
-    onFinish: (prompt: string, completion: string) => {
-      submit({
-        brief: completion,
-        formData: lastFormDataRef.current
-      });
-    },
-  });
-  const lastFormDataRef = useRef<any>(null);
-
+function EvaluationResults({ evaluation, onAnswerSubmit }: { 
+  evaluation: z.infer<typeof briefEvaluation>;
+  onAnswerSubmit: (answers: Record<string, string>) => void;
+}) {
   // Helper type guard
   const hasCriterionQuestions = (value: unknown): value is { questions?: string[] } => {
     return value !== null && 
@@ -194,18 +182,6 @@ function EvaluationResults({ evaluation }: { evaluation: z.infer<typeof briefEva
   ]
     .filter(hasCriterionQuestions)
     .flatMap(criterion => criterion.questions || []);
-
-  const handleAnswerSubmit = async (answers: Record<string, string>) => {
-    // Combine the original form data with the answers
-    const updatedFormData = {
-      ...JSON.parse(lastFormDataRef.current),
-      questionResponses: answers
-    };
-    lastFormDataRef.current = JSON.stringify(updatedFormData);
-    
-    // Trigger a new brief generation with the updated data
-    await complete(JSON.stringify(updatedFormData));
-  };
 
   return (
     <div className="space-y-6 mt-8">
@@ -257,7 +233,7 @@ function EvaluationResults({ evaluation }: { evaluation: z.infer<typeof briefEva
       {allQuestions.length > 0 && (
         <QuestionResponses 
           questions={allQuestions} 
-          onSubmit={handleAnswerSubmit} 
+          onSubmit={onAnswerSubmit} 
         />
       )}
       {evaluation.finalRecommendation && isCompleteRecommendation(evaluation.finalRecommendation) && (
@@ -320,10 +296,28 @@ export function BuildVsBuyDocGenerator() {
             console.error('Form data is null');
         }
     }, [submit]);
+    
     const { completion, complete, isLoading } = useCompletion({
         api: '/api/build-vs-buy/generate-brief',
         onFinish,
     });
+
+    const handleAnswerSubmit = async (answers: Record<string, string>) => {
+        if (!lastFormDataRef.current) {
+            console.error('No form data available');
+            return;
+        }
+
+        // Combine the original form data with the answers
+        const updatedFormData = {
+            ...lastFormDataRef.current,
+            questionResponses: answers
+        };
+        lastFormDataRef.current = updatedFormData;
+        
+        // Trigger a new brief generation with the updated data
+        await complete(JSON.stringify(updatedFormData));
+    };
 
     const formRef = useRef<HTMLFormElement>(null);
     const searchParams = useSearchParams();
@@ -478,7 +472,10 @@ export function BuildVsBuyDocGenerator() {
 
                 <SubmitButton />
             </form>
-            {object && <EvaluationResults evaluation={object as z.infer<typeof briefEvaluation>} />}
+            {object && <EvaluationResults 
+                evaluation={object as z.infer<typeof briefEvaluation>} 
+                onAnswerSubmit={handleAnswerSubmit}
+            />}
         </Card>
     );
 } 
