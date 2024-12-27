@@ -31,5 +31,8 @@ export async function generateBrief(formData: BuildVsBuyFormData) {
       
   Analysis Data:
   ${JSON.stringify(formData)}`,
+    experimental_telemetry: {
+      isEnabled: true,
+    },
   });
 }

@@ -68,6 +68,9 @@ export async function evaluateBrief(brief: string, formData: BuildVsBuyFormData)
   ${formData}
   
   Evaluate each criterion thoroughly and provide a structured response matching the schema.`,
+    experimental_telemetry: {
+      isEnabled: true,
+    },
   });
 
   return result;
