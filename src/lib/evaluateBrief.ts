@@ -2,8 +2,9 @@ import { streamObject } from "ai";
 import { getPostBySlug } from "./api";
 import { openai } from "@ai-sdk/openai";
 import { briefEvaluation } from "@/app/schemas/brief-evaluation";
+import { BuildVsBuyFormData } from "@/app/schemas/build-vs-buy-form";
 
-export async function evaluateBrief(brief: string, formData: string) {
+export async function evaluateBrief(brief: string, formData: BuildVsBuyFormData) {
     const post = getPostBySlug('build-vs-buy');
     
     if (!post) {
