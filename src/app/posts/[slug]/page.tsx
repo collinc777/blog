@@ -1,15 +1,15 @@
-import { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { getAllPosts, getPostBySlug } from "@/lib/api";
-import { BLOG_NAME } from "@/lib/constants";
-import markdownToHtml from "@/lib/markdownToHtml";
-import Alert from "@/app/_components/alert";
-import Container from "@/app/_components/container";
-import Header from "@/app/_components/header";
-import { PostBody } from "@/app/_components/post-body";
-import { PostHeader } from "@/app/_components/post-header";
-import SplitLayout from "@/app/_components/split-layout";
-import { SplitLayoutProvider } from "@/app/_components/split-layout-context";
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { getAllPosts, getPostBySlug } from '@/lib/api';
+import { BLOG_NAME } from '@/lib/constants';
+import markdownToHtml from '@/lib/markdownToHtml';
+import Alert from '@/app/_components/alert';
+import Container from '@/app/_components/container';
+import Header from '@/app/_components/header';
+import { PostBody } from '@/app/_components/post-body';
+import { PostHeader } from '@/app/_components/post-header';
+import SplitLayout from '@/app/_components/split-layout';
+import { SplitLayoutProvider } from '@/app/_components/split-layout-context';
 
 export default async function Post(props: Params) {
   const params = await props.params;
@@ -19,7 +19,7 @@ export default async function Post(props: Params) {
     return notFound();
   }
 
-  const content = await markdownToHtml(post.content || "");
+  const content = await markdownToHtml(post.content || '');
 
   return (
     <SplitLayoutProvider>
@@ -70,12 +70,14 @@ export async function generateMetadata(props: Params): Promise<Metadata> {
       description: post.excerpt,
       type: 'article',
       url,
-      images: [{
-        url: post.ogImage.url,
-        width: 1200,
-        height: 630,
-        alt: post.title,
-      }],
+      images: [
+        {
+          url: post.ogImage.url,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
       publishedTime: post.date,
       authors: [post.author.name],
     },
@@ -95,7 +97,7 @@ export async function generateMetadata(props: Params): Promise<Metadata> {
 export async function generateStaticParams() {
   const posts = getAllPosts();
 
-  return posts.map((post) => ({
+  return posts.map(post => ({
     slug: post.slug,
   }));
 }

@@ -1,11 +1,11 @@
-import { openai } from "@ai-sdk/openai";
-import { streamText } from "ai";
-import { BuildVsBuyFormData } from "@/app/schemas/build-vs-buy-form";
+import { openai } from '@ai-sdk/openai';
+import { streamText } from 'ai';
+import { BuildVsBuyFormData } from '@/app/schemas/build-vs-buy-form';
 
 export async function generateBrief(formData: BuildVsBuyFormData) {
-    return streamText({
-      model: openai('gpt-4o'),
-      system: `
+  return streamText({
+    model: openai('gpt-4o'),
+    system: `
       You are an expert technology decision maker specializing in build vs. buy analysis. 
   Your recommendations are clear, well-reasoned, and based on concrete data.
   
@@ -27,10 +27,9 @@ export async function generateBrief(formData: BuildVsBuyFormData) {
   
   Your output should be in markdown format.
       `,
-      prompt: `Based on the following build vs. buy analysis data, generate a structured decision brief.
+    prompt: `Based on the following build vs. buy analysis data, generate a structured decision brief.
       
   Analysis Data:
   ${JSON.stringify(formData)}`,
-    });
-  }
-  
+  });
+}

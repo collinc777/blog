@@ -30,15 +30,13 @@ const components = {
   ol: ({ children }: { children: React.ReactNode }) => (
     <ol className="my-6 list-decimal pl-6">{children}</ol>
   ),
-  li: ({ children }: { children: React.ReactNode }) => (
-    <li className="mb-2">{children}</li>
-  ),
+  li: ({ children }: { children: React.ReactNode }) => <li className="mb-2">{children}</li>,
 };
 
 const MemoizedMarkdownBlock = memo(
   ({ content }: { content: string }) => {
     return (
-      <div className={markdownStyles["markdown"]}>
+      <div className={markdownStyles['markdown']}>
         <ReactMarkdown components={components}>{content}</ReactMarkdown>
       </div>
     );
@@ -46,19 +44,17 @@ const MemoizedMarkdownBlock = memo(
   (prevProps, nextProps) => {
     if (prevProps.content !== nextProps.content) return false;
     return true;
-  },
+  }
 );
 
 MemoizedMarkdownBlock.displayName = 'MemoizedMarkdownBlock';
 
-export const MemoizedMarkdown = memo(
-  ({ content, id }: { content: string; id: string }) => {
-    const blocks = useMemo(() => parseMarkdownIntoBlocks(content), [content]);
+export const MemoizedMarkdown = memo(({ content, id }: { content: string; id: string }) => {
+  const blocks = useMemo(() => parseMarkdownIntoBlocks(content), [content]);
 
-    return blocks.map((block, index) => (
-      <MemoizedMarkdownBlock content={block} key={`${id}-block_${index}`} />
-    ));
-  },
-);
+  return blocks.map((block, index) => (
+    <MemoizedMarkdownBlock content={block} key={`${id}-block_${index}`} />
+  ));
+});
 
 MemoizedMarkdown.displayName = 'MemoizedMarkdown';

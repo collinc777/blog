@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   const { brief, formData } = (await req.json()) as { brief: string; formData: string };
   const typedFormData = buildVsBuyFormSchema.safeParse(JSON.parse(formData));
   if (!typedFormData.success) {
-    return new Response("Invalid input", { status: 400 });
+    return new Response('Invalid input', { status: 400 });
   }
   const result = await evaluateBrief(brief, typedFormData.data);
   if (result instanceof Response) {
@@ -16,4 +16,3 @@ export async function POST(req: Request) {
 
   return result.toTextStreamResponse();
 }
-

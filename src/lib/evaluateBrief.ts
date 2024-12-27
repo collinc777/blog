@@ -1,20 +1,20 @@
-import { streamObject } from "ai";
-import { getPostBySlug } from "./api";
-import { openai } from "@ai-sdk/openai";
-import { briefEvaluation } from "@/app/schemas/brief-evaluation";
-import { BuildVsBuyFormData } from "@/app/schemas/build-vs-buy-form";
+import { streamObject } from 'ai';
+import { getPostBySlug } from './api';
+import { openai } from '@ai-sdk/openai';
+import { briefEvaluation } from '@/app/schemas/brief-evaluation';
+import { BuildVsBuyFormData } from '@/app/schemas/build-vs-buy-form';
 
 export async function evaluateBrief(brief: string, formData: BuildVsBuyFormData) {
-    const post = getPostBySlug('build-vs-buy');
-    
-    if (!post) {
-      return new Response('Blog post not found', { status: 404 });
-    }
-  
-    const result = streamObject({
-      model: openai('gpt-4o'),
-      schema: briefEvaluation,
-      system: `You are an expert evaluator of build vs. buy decision briefs.
+  const post = getPostBySlug('build-vs-buy');
+
+  if (!post) {
+    return new Response('Blog post not found', { status: 404 });
+  }
+
+  const result = streamObject({
+    model: openai('gpt-4o'),
+    schema: briefEvaluation,
+    system: `You are an expert evaluator of build vs. buy decision briefs.
   Your task is to evaluate decision briefs based on a specific framework.
   
   For each analysis criterion, you must provide:
@@ -56,8 +56,7 @@ export async function evaluateBrief(brief: string, formData: BuildVsBuyFormData)
   - List specific next steps
   
   IMPORTANT: Structure your response to match the schema exactly.`,
-      prompt:
-        `Please evaluate this decision brief based on the framework from the blog post.
+    prompt: `Please evaluate this decision brief based on the framework from the blog post.
   
   Framework (from blog post):
   ${post.content}
@@ -68,8 +67,8 @@ export async function evaluateBrief(brief: string, formData: BuildVsBuyFormData)
   Form Data:
   ${formData}
   
-  Evaluate each criterion thoroughly and provide a structured response matching the schema.`
-    });
-  
-    return result;
-  }
+  Evaluate each criterion thoroughly and provide a structured response matching the schema.`,
+  });
+
+  return result;
+}

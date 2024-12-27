@@ -8,11 +8,10 @@ export async function POST(req: Request) {
   const { prompt: context } = (await req.json()) as { prompt: string };
   const typedContext = buildVsBuyFormSchema.safeParse(JSON.parse(context));
   if (!typedContext.success) {
-    return new Response("Invalid input", { status: 400 });
+    return new Response('Invalid input', { status: 400 });
   }
 
   const result = await generateBrief(typedContext.data);
 
   return result.toDataStreamResponse();
 }
-

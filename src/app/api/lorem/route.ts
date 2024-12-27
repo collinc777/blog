@@ -11,8 +11,7 @@ export async function POST(req: Request) {
   const result = streamObject({
     model: openai('gpt-4o-mini'),
     schema: loremIpsumSchema,
-    prompt:
-      `Generate a lorem ipsum for a messages app in this context:` + context,
+    prompt: `Generate a lorem ipsum for a messages app in this context:` + context,
   });
 
   return result.toTextStreamResponse();

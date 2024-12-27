@@ -1,4 +1,4 @@
-import { BLOG_NAME } from "@/lib/constants";
+import { BLOG_NAME } from '@/lib/constants';
 
 export function Intro() {
   return (

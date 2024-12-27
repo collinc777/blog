@@ -25,4 +25,4 @@ export function useRightPane() {
     throw new Error('useRightPane must be used within a SplitLayoutProvider');
   }
   return context;
-} 
+}
