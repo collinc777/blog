@@ -1,7 +1,8 @@
 import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
+import { BuildVsBuyFormData } from "@/app/schemas/build-vs-buy-form";
 
-export async function generateBrief(context: string) {
+export async function generateBrief(formData: BuildVsBuyFormData) {
     return streamText({
       model: openai('gpt-4o'),
       system: `
@@ -29,7 +30,7 @@ export async function generateBrief(context: string) {
       prompt: `Based on the following build vs. buy analysis data, generate a structured decision brief.
       
   Analysis Data:
-  ${context}`,
+  ${JSON.stringify(formData)}`,
     });
   }
   
