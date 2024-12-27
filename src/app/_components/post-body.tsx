@@ -1,5 +1,5 @@
 import markdownStyles from "./markdown-styles.module.css";
-import { BuildVsBuyDocGenerator } from "./build-vs-buy-doc-generator";
+import { SuspendedBuildVsBuyDocGenerator } from "./build-vs-buy-doc-generator";
 
 type Props = {
   content: string;
@@ -14,7 +14,7 @@ export function PostBody({ content, features }: Props) {
         dangerouslySetInnerHTML={{ __html: content }}
       />
       {features?.includes('build-vs-buy-doc-generator') && (
-        <BuildVsBuyDocGenerator />
+        <SuspendedBuildVsBuyDocGenerator />
       )}
     </div>
   );

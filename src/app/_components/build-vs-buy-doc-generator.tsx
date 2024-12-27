@@ -16,6 +16,7 @@ import { useSearchParams } from 'next/navigation';
 import { briefEvaluation } from '../schemas/brief-evaluation';
 import { Badge } from "@/components/ui/badge";
 import { z } from 'zod';
+import { Suspense } from 'react';
 
 type Rating = "pass" | "fail" | "needs_more_info";
 type Recommendation = "build" | "buy" | "hybrid" | "needs_more_info";
@@ -267,6 +268,30 @@ const syntheticData = {
     existingSolutions: "Evaluated Elastic, Algolia, and custom solutions. Each has tradeoffs in AI capabilities vs. search performance.",
     teamCapabilities: "Strong backend team with ML experience, previous search implementation experience."
 };
+
+function LoadingFallback() {
+  return (
+    <Card className="p-6 my-8">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold">Build vs Buy Decision Framework</h3>
+      </div>
+      <div className="animate-pulse space-y-4">
+        <div className="h-10 bg-gray-200 rounded w-full" />
+        <div className="h-24 bg-gray-200 rounded w-full" />
+        <div className="h-24 bg-gray-200 rounded w-full" />
+        <div className="h-24 bg-gray-200 rounded w-full" />
+      </div>
+    </Card>
+  );
+}
+
+export function SuspendedBuildVsBuyDocGenerator() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <BuildVsBuyDocGenerator />
+    </Suspense>
+  );
+}
 
 export function BuildVsBuyDocGenerator() {
     const { setRightPaneContent } = useRightPane();
