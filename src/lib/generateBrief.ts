@@ -1,10 +1,17 @@
 import { openai } from '@ai-sdk/openai';
-import { streamText } from 'ai';
+import { streamObject } from 'ai';
 import { BuildVsBuyFormData } from '@/app/schemas/build-vs-buy-form';
+import { z } from 'zod';
+
+export const briefSchema = z.object({
+  thinking: z.string().describe('Your thinking process'),
+  brief: z.string().describe('The decision brief in markdown format'),
+});
 
 export async function generateBrief(formData: BuildVsBuyFormData) {
-  return streamText({
+  return streamObject({
     model: openai('gpt-4o'),
+    schema: briefSchema,
     system: `
       You are an expert technology decision maker specializing in build vs. buy analysis. 
   Your recommendations are clear, well-reasoned, and based on concrete data.

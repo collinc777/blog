@@ -1,7 +1,6 @@
 'use client';
-import { useCompletion } from 'ai/react';
 import { experimental_useObject as useObject } from 'ai/react';
-import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +16,7 @@ import { briefEvaluation } from '../schemas/brief-evaluation';
 import { Badge } from '@/components/ui/badge';
 import { z } from 'zod';
 import { Suspense } from 'react';
+import { briefSchema } from '@/lib/generateBrief';
 
 type Rating = 'pass' | 'fail' | 'needs_more_info';
 type Recommendation = 'build' | 'buy' | 'hybrid' | 'needs_more_info';
@@ -328,30 +328,25 @@ export function BuildVsBuyDocGenerator() {
   async function handleSubmit(_prevState: unknown, formData: FormData) {
     const formDataObj = Object.fromEntries(formData);
     lastFormDataRef.current = formDataObj;
-    await complete(JSON.stringify(formDataObj));
+    await briefSubmit(JSON.stringify(formDataObj));
     return formDataObj;
   }
   const [_state, action] = useActionState(handleSubmit, null);
 
-  const onFinish = useCallback(
-    (prompt: string, completion: string) => {
-      console.log('onFinish', { prompt, completion });
+  const { object: briefObject, submit: briefSubmit } = useObject({
+    api: '/api/build-vs-buy/generate-brief',
+    schema: briefSchema,
+    onFinish: event => {
       const formData = lastFormDataRef.current;
-      if (formData) {
+      if (formData && event.object?.brief) {
         submit({
-          brief: completion,
+          brief: event.object?.brief,
           formData: JSON.stringify(formData),
         });
       } else {
         console.error('Form data is null');
       }
     },
-    [submit]
-  );
-
-  const { completion, complete } = useCompletion({
-    api: '/api/build-vs-buy/generate-brief',
-    onFinish,
   });
 
   const handleAnswerSubmit = async (answers: Record<string, string>) => {
@@ -368,7 +363,7 @@ export function BuildVsBuyDocGenerator() {
     lastFormDataRef.current = updatedFormData;
 
     // Trigger a new brief generation with the updated data
-    await complete(JSON.stringify(updatedFormData));
+    await briefSubmit(JSON.stringify(updatedFormData));
   };
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -376,12 +371,12 @@ export function BuildVsBuyDocGenerator() {
   const isSuperuser = searchParams.get('user_type') === 'superuser';
 
   useEffect(() => {
-    if (completion) {
+    if (briefObject?.brief) {
       setRightPaneContent(
-        <MemoizedMarkdown content={completion} id="build-vs-buy-doc-generator" />
+        <MemoizedMarkdown content={briefObject.brief} id="build-vs-buy-doc-generator" />
       );
     }
-  }, [completion, setRightPaneContent]);
+  }, [briefObject, setRightPaneContent]);
 
   const fillSyntheticData = () => {
     if (!formRef.current) return;
