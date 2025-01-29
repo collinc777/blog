@@ -16,8 +16,6 @@ export async function POST(request: Request) {
     }
 
     // Run the prediction
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
     const output = await replicate.run(
       'collinc777/docling:a4a056c2e9aa73db39eeee4e13e7913528e9180b672a2d128646439ce8c0903e',
       {
