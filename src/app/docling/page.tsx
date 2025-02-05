@@ -79,7 +79,7 @@ export default function DoclingPage() {
   );
 
   return (
-    <div className="container max-w-4xl py-8">
+    <div className="container py-8 px-2">
       <h1 className="text-4xl font-bold mb-4">Docling Document Processor</h1>
       <p className="text-muted-foreground mb-8">Process documents from publicly accessible URLs</p>
 
