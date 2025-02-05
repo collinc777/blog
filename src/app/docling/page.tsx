@@ -1,91 +1,82 @@
 'use client';
 
-import React from 'react';
-import { useState } from 'react';
+import React, { useActionState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Loader2 } from 'lucide-react';
+import { pollDocumentStatus, processDocument, ProcessingResult } from './actions';
 
-interface ProcessingResult {
-  document_url: string;
+function SubmitButton({ pending }: { pending: boolean }) {
+  return (
+    <Button type="submit" disabled={pending} className="w-full">
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Processing...
+        </>
+      ) : (
+        'Process Document'
+      )}
+    </Button>
+  );
 }
 
 export default function DoclingPage() {
-  const [url, setUrl] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<ProcessingResult | null>(null);
   const { toast } = useToast();
 
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUrl(e.target.value);
-    setResult(null);
-  };
+  const [state, formAction, pending] = useActionState<ProcessingResult | null, FormData>(
+    async (prevState, formData) => {
+      const url = formData.get('url') as string;
 
-  const isValidUrl = (urlString: string) => {
-    try {
-      const url = new URL(urlString);
-      return url.protocol === 'http:' || url.protocol === 'https:';
-    } catch {
-      return false;
-    }
-  };
+      const result = await processDocument(url);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+      if (!result.document_url) {
+        return new Promise((resolve, reject) => {
+          const intervalId = setInterval(async () => {
+            try {
+              const pollResult = await pollDocumentStatus(result.runId);
 
-    if (!url) {
-      toast({
-        title: 'No URL provided',
-        description: 'Please enter a URL to process',
-        variant: 'destructive',
-      });
-      return;
-    }
+              if (pollResult.document_url) {
+                clearInterval(intervalId);
+                toast({
+                  title: 'Success!',
+                  description: 'Document processed successfully',
+                });
+                resolve(pollResult);
+              }
+            } catch (error) {
+              clearInterval(intervalId);
+              toast({
+                title: 'Error',
+                description: 'Failed to poll document status',
+                variant: 'destructive',
+              });
+              reject(error);
+            }
+          }, 2000);
 
-    if (!isValidUrl(url)) {
-      toast({
-        title: 'Invalid URL',
-        description: 'Please enter a valid HTTP or HTTPS URL',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    setResult(null);
-
-    try {
-      const response = await fetch('/api/docling/process', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ url }),
-      });
-
-      if (!response.ok) {
-        throw new Error(await response.text());
+          // Cleanup interval after 5 minutes
+          setTimeout(
+            () => {
+              clearInterval(intervalId);
+              toast({
+                title: 'Timeout',
+                description: 'Document processing timed out',
+                variant: 'destructive',
+              });
+              resolve(prevState); // Keep the previous state on timeout
+            },
+            5 * 60 * 1000
+          );
+        });
       }
 
-      const { result } = await response.json();
-      setResult(result);
-
-      toast({
-        title: 'Success!',
-        description: 'Document processed successfully',
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to process document',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return result;
+    },
+    null
+  );
 
   return (
     <div className="container max-w-4xl py-8">
@@ -93,7 +84,7 @@ export default function DoclingPage() {
       <p className="text-muted-foreground mb-8">Process documents from publicly accessible URLs</p>
 
       <Card className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form action={formAction} className="space-y-6">
           <div className="space-y-4">
             <div>
               <label htmlFor="url-input" className="block text-sm font-medium mb-2">
@@ -101,11 +92,11 @@ export default function DoclingPage() {
               </label>
               <Input
                 id="url-input"
+                name="url"
                 type="url"
                 placeholder="https://example.com/document.pdf"
-                value={url}
-                onChange={handleUrlChange}
-                disabled={isLoading}
+                required
+                pattern="https?://.*"
                 className="w-full"
               />
               <p className="text-sm text-muted-foreground mt-2">
@@ -115,24 +106,40 @@ export default function DoclingPage() {
             </div>
           </div>
 
-          <Button type="submit" disabled={!url || isLoading} className="w-full">
-            {isLoading ? 'Processing...' : 'Process Document'}
-          </Button>
+          <SubmitButton pending={pending} />
         </form>
 
-        {result && (
+        {(pending || state?.document_url) && (
           <div className="mt-8 space-y-4">
             <h2 className="text-lg font-semibold">Processing Result</h2>
             <div className="rounded-lg border bg-card p-4">
-              <a
-                href={result.document_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-primary hover:underline"
-              >
-                <ExternalLink className="h-4 w-4" />
-                View Processed Document
-              </a>
+              {pending ? (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Processing document...
+                </div>
+              ) : state?.document_url ? (
+                <div className="space-y-4">
+                  <a
+                    href={state.document_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-primary hover:underline"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    View in New Tab
+                  </a>
+
+                  <div className="border rounded-lg overflow-hidden bg-white">
+                    <iframe
+                      src={state.document_url}
+                      className="w-full h-[600px]"
+                      title="Processed Document"
+                      sandbox="allow-scripts allow-same-origin"
+                    />
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         )}
